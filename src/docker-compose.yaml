@@ -1,0 +1,51 @@
+version: "3" 
+services:
+
+    nginx:
+        image: nginx:bookworm
+        volumes:
+            - "./data/www_site:/home/_www_home/www_site"
+            - "./config/nginx/conf.d:/etc/nginx/conf.d"
+        networks:
+            - web_net
+        # 重启策略
+        restart: always
+        expose:
+            - "80"
+            - "443"
+        ports:
+            - "80:80"
+            - "443:443"
+
+    # 服务名称
+    halo-blog:
+        # 指定镜像
+        image: halohub/halo:1.6.1
+        # 挂载数据
+        volumes:
+            - "./data/www_site/halo_blog_web:/root/.halo"
+        # 指定网络
+        networks:
+            - db_net
+            - web_net
+        environment:
+            JVM_XMS: "255M"
+            JVM_XMX: "255M"
+            JVM_OPTS: "-Xmn448M -XX:MaxMetaspaceSize=192M -XX:MetaspaceSize=192M"
+        restart: always
+
+    mysql:
+        image: mysql:8.2
+        volumes:
+            - ./data/mysql-data:/var/lib/mysql
+            - ./data/backup-data:/backup-data
+        environment:
+            TZ: 'Asia/Shanghai'
+            MYSQL_ROOT_PASSWORD: qq123456
+        networks:
+            - db_net
+        restart: always
+
+networks:
+    web_net:
+    db_net:
